@@ -1,54 +1,80 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <link rel="stylesheet" href="styles.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="A blog about bioinformatics, covering topics from genomics to computational biology.">
-    <title>Bioinformatics Blog</title>
-
-    <script type="text/javascript" src="https://get.goXTK.com/xtk_edge.js"></script>
-    <script src="script.js"></script>
+    <meta name="description" content="This blog is a space where we can share our group projects for INTR-D 280 / HONORS 295 An Introduction to Genomic Data Sciences.">
+    
     <link rel="stylesheet" href="styles.css">
+    <link rel="icon" type="image/png" href="man.png">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <title>Spyders</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128/examples/js/loaders/STLLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128/examples/js/controls/OrbitControls.js"></script>
+    <script src="script.js"></script>
 </head>
 <body>
     <header>
         <div class="container">
-            <h1>Module 1 Group Project: DNA Transcription</h1>
+            <h1>Spyders: Obviously the Coolest Group</h1>
             <nav>
                 <ul>
                     <li><a href="#about">About</a></li>
                     <li><a href="#blog">Blog Posts</a></li>
-                    <li><a href="#contact">Contact</a></li>
+                    <li><a href="#people">People</a></li>
                 </ul>
             </nav>
         </div>
     </header>
-
+    
     <section id="about" class="container">
         <h2>About This Blog</h2>
-        <p>This blog is dedicated to exploring the world of bioinformatics. From genomics to data analysis, we discuss the latest developments and research.</p>
+        <p>This blog is a space where <a href="#people">we</a> can share our group projects for INTR-D 280 / HONORS 295 An Introduction to Genomic Data Sciences.</p>
     </section>
-
-    <canvas width="1920" height="479"></canvas>
 
     <section id="blog" class="container">
         <h2>Recent Blog Posts</h2>
+        
         <article class="blog-post">
-            <h3>The Role of Bioinformatics in Genomics</h3>
-            <p>Bioinformatics has revolutionized how we approach genomic data. Learn how computational tools help analyze large sets of genetic information.</p>
-            <a href="#">Read More</a>
-        </article>
+            <h3>Module 1 Project: A Deeper Dive in DNA Transcription</h3>    
+        </article>    
+        
+        <div class="canvas-container">
+            <canvas id="modelCanvas"></canvas>
+        </div>
+        <article class="blog-post"> 
+            <p>Lorem ipsum dolor sit amet. Qui sunt impedit in tenetur sunt est dolorum enim aut rerum saepe est sunt incidunt ea dolore pariatur aut repudiandae dolores. Qui harum aspernatur et similique impedit et nihil quia. </p>
+            <br>
+            <p>Et distinctio deserunt in galisum unde et placeat consequatur qui doloribus alias ut numquam consequatur est galisum rerum? Sed facere adipisci est aspernatur cumque vel harum sunt ut praesentium sint ut doloremque pariatur. Aut deleniti nihil quo voluptatem incidunt aut animi tenetur nam possimus nemo. </p>
+            <br>
+            <p>Et impedit molestiae quo minus voluptatibus in cumque quidem est eveniet blanditiis id debitis repellat. Ut sint quia non neque porro sit enim eaque aut quod maxime. </p>
 
-        <article class="blog-post">
-            <h3>Machine Learning in Biomedical Data</h3>
-            <p>Machine learning is transforming bioinformatics. We explore different algorithms used to make sense of complex biological data.</p>
-            <a href="#">Read More</a>
         </article>
     </section>
 
-    <section id="contact" class="container">
-        <h2>Contact</h2>
-        <p>If you have any questions or would like to contribute, feel free to reach out at <a href="mailto:info@bioinformaticsblog.com">info@bioinformaticsblog.com</a>.</p>
+    <section id="people" class="container">
+        <h2>People</h2>
+        <div id="people-div">
+            <div class="person">
+                <img src="https://matheusberbet.site/assets/profile-DhiOsbuD.png"/>
+                <p>Elnor...</p>
+            </div>
+            <div class="person">
+                <img src="https://matheusberbet.site/assets/profile-DhiOsbuD.png"/>
+                <p>Fiona ...</p> 
+            </div>
+            <div class="person">
+                <img src="https://matheusberbet.site/assets/profile-DhiOsbuD.png"/>
+                <p><a href="https://matheusberbet.site">Matheus Berbet</a></p>
+            </div>
+            <div class="person">
+                <img src="https://matheusberbet.site/assets/profile-DhiOsbuD.png"/>
+                <p>Sam ... </p>
+            </div>
+        </div>
     </section>
 
     <footer>
