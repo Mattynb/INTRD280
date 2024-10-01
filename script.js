@@ -3,15 +3,17 @@ window.onload = function() {
     let canvas = document.getElementById('modelCanvas');
 
     // Create renderer and attach to the canvas
-    let renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true , antialias: true});
+    let renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: false , antialias: true});
     renderer.setSize(window.innerWidth / 1.25, window.innerHeight / 2);
     
     // Create scene, camera, and lighting
     let scene = new THREE.Scene();
+    scene.background = new THREE.Color( 0x220000 );
+
     let camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
     camera.position.z = 5;
     
-    let light = new THREE.DirectionalLight(0xffffff, 1);
+    let light = new THREE.DirectionalLight(0xff0000, 1);
     light.position.set(1, 1, 1).normalize();
     scene.add(light);
     

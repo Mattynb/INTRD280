@@ -67,7 +67,21 @@ section h2 {
     margin-bottom: 10px;
 }
 
+.blog-post h4 {
+    font-size: 1.5rem;
+    margin-top: 30px;
+}
+
+.blog-post img {
+    width: 100%;
+    height: auto;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
 .blog-post p {
+    line-height: 8;
+    text-indent: 50px;
     font-size: 1.1rem;
     line-height: 1.6;
 }
