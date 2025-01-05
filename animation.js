@@ -37,7 +37,7 @@ window.onload = function() {
         requestAnimationFrame(animate);
         
         
-        time = Date.now() * 0.001;
+        var time = Date.now() * 0.001;
         if (mesh) mesh.rotation.x = time;
 
         controls.update();
