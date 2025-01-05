@@ -1,55 +1,51 @@
-window.onload = function() {
-    // Select the specific canvas element
-    let canvas = document.getElementById('modelCanvas');
+import { postData } from './src/constants.js';  
+import { createCard } from './src/components/card.js';
 
-    // Create renderer and attach to the canvas
-    let renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: false , antialias: true});
-    renderer.setSize(window.innerWidth / 1.25, window.innerHeight / 2);
-    
-    // Create scene, camera, and lighting
-    let scene = new THREE.Scene();
-    scene.background = new THREE.Color( 0x220000 );
+function loadHTML(elementId, url) {
+    fetch(url)
+        .then(response => response.text())
+        .then(data => {
+            document.getElementById(elementId).innerHTML = data;
+        })
+        .catch(error => console.error('Error loading HTML:', error));
+}
 
-    let camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.z = 5;
-    
-    let light = new THREE.DirectionalLight(0xff0000, 1);
-    light.position.set(1, 1, 1).normalize();
-    scene.add(light);
-    
-    // Orbit Controls
-    let controls = new THREE.OrbitControls(camera, renderer.domElement);
-    controls.enabled = false
-    // Load STL Model
-    let loader = new THREE.STLLoader();
+function loadFolder(folder) {
+    // logs all HTML files in the folder
+    fetch(folder)
+        .then(response => response.text())
+        .then(data => {
+            // get the file names
+            let fileNames = data.match(/href="[^"]+"/g);
+            fileNames = fileNames.map(fileName => fileName.slice(6, -1));
 
-    loader.load('models/dna.stl', function (geometry) {
-        let material = new THREE.MeshNormalMaterial(); // Material for the mesh
-        mesh = new THREE.Mesh(geometry, material);
-        mesh.rotation.z = 1.5;
-        mesh.position.x = 6; 
-        console.log(mesh);
-        scene.add(mesh);
+            // load the HTML files
+            fileNames.forEach(fileName => {
+                if (fileName.endsWith('.html')) {
+                    loadHTML(fileName.slice(0, -5), folder + '/' + fileName);
+                }
+            });
+        })
+        .catch(error => console.error('Error loading folder:', error));
+}
+
+function renderCards() {
+    const container = document.getElementById('blog');
+
+    Object.entries(postData).forEach(post => {
+        const card = createCard(post[1]);
+        container.innerHTML += card;
     });
-    
-    // Animation loop
-    function animate() {
-        requestAnimationFrame(animate);
-        
-        
-        time = Date.now() * 0.001;
-        mesh.rotation.x = time;
 
-        controls.update();
-        renderer.render(scene, camera);
-    }
-    animate();
-    
-    // Adjust the canvas size and camera on window resize
-    window.addEventListener('resize', function () {
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-    });
-    
-};
+
+}
+
+
+document.addEventListener('DOMContentLoaded', () => {
+    loadHTML('header', 'src/header.html');
+    loadHTML('people', 'src/people.html');
+    loadHTML('footer', 'src/footer.html');
+    renderCards();
+    //loadHTML('module1', 'src/posts/module1.html');
+    //loadFolder('src/posts');
+});

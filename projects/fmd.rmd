@@ -1,0 +1,84 @@
+---
+title: "Weekly Assignment"
+output: pdf_document
+date: "`r Sys.Date()`"
+---
+
+#### 0 - import libraries
+
+```{r setup}
+library(tidyverse) 
+library(ggplot2)
+```
+
+#### 1 - Assume the cells have 20 genes.
+
+```{r}
+num_genes <- 20
+```
+
+#### 2 - Use a Poisson distribution with means = 5, 6, 7 to generate 3 gene expression datasets representing treated
+
+```{r}
+treated5 <- rpois(num_genes, lambda = 5)
+treated6 <- rpois(num_genes, lambda = 6)
+treated7 <- rpois(num_genes, lambda = 7)
+```
+
+#### 3 - Repeat the above with means = 1, 2, 1 to generate 3 gene expression datasets representing untreated.
+
+```{r}
+untreat1 <- rpois(num_genes, lambda = 1)
+untreat2 <- rpois(num_genes, lambda = 2)
+untreat3 <- rpois(num_genes, lambda = 1)
+```
+
+#### 4 - Generate a data frame whose rows are genes (20 total) and whose columns are samples (ca1, ca2, ca3 representing cases and co1, co2, co3, representing controls)
+
+```{r}
+data <- data.frame(
+  Gene = paste("Gene", 1:num_genes, sep=""),
+  ca1 = treated5,
+  ca2 = treated6,
+  ca3 = treated7,
+  co1 = untreat1,
+  co2 = untreat2,
+  co3 = untreat3
+)
+print(data)
+```
+
+#### 5 - Turn the data farme into long format
+
+```{r}
+gene_expression <- data %>% pivot_longer(
+    cols = -Gene, 
+    names_to = "Sample", 
+    values_to = "Expression"
+)
+print(gene_expression)
+```
+
+#### 6 - Use ggplot to plot the boxplots for each.
+
+```{r fig.align='center'}
+ggplot(
+  gene_expression, 
+  aes(
+    x = Sample,
+    y = Expression,
+    fill = Sample
+  )
+) + (
+  geom_boxplot()
+) + (
+# 7 - try to color-code the box-plots by sample type 
+# (blue representing case and red representing control). 
+  scale_fill_manual(
+    values = c(  # 
+      "ca1" = "blue", "ca2" = "blue", "ca3" = "blue", 
+      "co1" = "red", "co2" = "red", "co3" = "red"
+    )
+  )
+)
+```

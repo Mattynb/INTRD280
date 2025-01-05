@@ -1,0 +1,32 @@
+---
+output:
+  pdf_document: default
+  html_document: default
+---
+### 1) Simulate data
+```{r}
+new_drug = rnorm(50, mean = 120, sd = 10)
+standard = rnorm(50, mean = 125, sd = 12)
+```
+### 2) Plot histograms
+```{r}
+library(ggplot2)
+data = data.frame(
+  BloodPressure = c(new_drug, standard),
+  Group = factor(rep(c("New Drug", "Standard Treatment"), each = 50))
+)
+ggplot(
+  data, 
+  aes(x = BloodPressure, fill = Group)
+) + geom_histogram(alpha = .75, position = "identity", bins = 15
+) + labs(title = "New Drug & Standard Treatment", x = "Blood Pressure", y = "Count"
+)
+```
+
+### 3) T-test
+```{r}
+t_test_result = t.test(new_drug, standard)
+print(t_test_result)
+```
+
+### P value Interpretation: The p value is used to determine significance of a result. The usual significance level it must meet is 0.05, though it is heavily context dependent. In our case the p value was greater than 0.05. Assuming that 0.05 is a good significance level in this context, we CANNOT conclude that the new drug is more effective in reducing blood pressure compared with the standard treatment.  

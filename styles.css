@@ -14,12 +14,25 @@ body {
 }
 
 /* Container */
+.container-card {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 16px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px; /* Space between cards */
+}
+
 .container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
     width: 90%;
     max-width: 1200px;
     margin: 0 auto;
     padding: 20px;
 }
+
 
 /* Header */
 header {
@@ -65,6 +78,75 @@ section h2 {
     text-align: center;
     color: #902427;
 }
+
+/* Blog Post Card */
+.card { 
+    border: 2px solid #000; 
+    border-radius: 8px;
+    padding: 16px; 
+    margin: 16px; 
+    width: 100%; /* Adjusted for grid */
+    max-width: 600px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+    background-color: #fff;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+}
+
+.card_image { 
+    /* stay inside card*/
+    width: 100%;
+    height: 40%;
+    border-radius: 4px;
+    justify-self: flex-start;
+}
+
+.card_content { 
+    padding: 8px; 
+}
+
+.card_title { 
+    font-size: 1.5em; 
+    margin: 0.5em 0;
+    color: #333;
+}
+
+.card_description { 
+    font-size: 1em; 
+    color: #555;
+}
+
+.card_button { 
+    display: inline-block; 
+    padding: 8px 16px; 
+    background-color: #902427; 
+    color: #fff; 
+    text-decoration: none; 
+    border-radius: 4px;
+    margin-top: 12px;
+    transition: background-color 0.3s;
+    justify-self: flex-end;
+}
+
+.card_button:hover { 
+    background-color: #0056b3; 
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .card {
+        width: 80%;
+    }
+}
+
+
 
 /* Blog Post Styling */
 .blog-post {
@@ -253,4 +335,35 @@ footer p {
         width: 100%;
         margin: 20px 0;
     }
+}
+
+
+/* CODE */
+pre {
+    background-color: #1e1e1e;
+    padding: 20px;
+    border-radius: 8px;
+    overflow-x: auto;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    margin: 2rem 0 2rem 0;
+}
+
+code {
+    color: #028482;
+    font-size: 1.1em;
+    line-height: 1.6;
+}
+
+/* Highlighting Specific Keywords (Optional) */
+code .keyword {
+    color: #569cd6;
+}
+
+code .string {
+    color: #ce9178;
+}
+
+code .command {
+    color: #9cdcfe;
+    font-weight: bold;
 }

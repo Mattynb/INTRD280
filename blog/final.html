@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <link rel="stylesheet" href="../styles.css">
+        <link rel="icon" type="image/png" href="../src/public/man.png">
+        <title>Genetic Expression of Salicornia Depressa</title>
+    </head>
+    <body>
+        <section id="about"  class="container">
+        <article class="blog-post">
+            <h2>Genetic Expression of Salicornia Depressa in Nitrate vs Ammonium Treatments</h2>
+
+            <h3 style="text-align: center;" >1 - Background and Context</h3>
+            <p>Salicornia depressa is a plant found in salt marshes. It exhibits unique adaptations that make it resistant to saline and various nutrient environments. Understanding how it responds to different nitrogen sources such as ammonium and nitrate can shed light on its nitrogen cycle and give us insights into how it can be used for ecological restoration and pollution control. This
+                analysis project is part of a broader investigation into how varying nitrogen availability impacts
+                root development and gene expression. The samples analyzed in this study include RNA-Seq
+                data from Salicornia depressa primarily focusing on roots exposed to nitrate, ammonium, and
+                control treatments. This analysis aims to identify genes most influenced by nitrogen sources,
+                utilizing transcript data, salmon pipelines, and R.</p>
+        
+            <h3 style="text-align: center;">2 - Methods</h3>
+            <h3>2.1 Research Question</h3>
+            <p style="text-align: center;">How do different nitrogen sources (nitrate, ammonium, and control) affect gene expression in Salicornia depressa roots?</p>
+        
+            <h3>2.2 Starting Data</h3>
+            <p>RNA-Seq data derived from Salicornia depressa roots, flora, and vegetation subjected to
+                nitrate, ammonium, and control treatments was sequenced using NovaSeqX. All initial data was
+                produced and provided by Prof. Brook Moyers and her group:</p>
+
+            <ol>
+                <li>The resulting interleaved RNA-Seq files.</li>
+                <li>Metadata about these samples and a few more was provided in an Excel file
+                    (rnaMetaBars.xlsx).</li>
+                <li>The transcriptome was provided in a fasta file. (gene.features.fasta)</li>
+                <li>GFF3 file containing annotations of the transcriptome.</li>
+            </ol>
+    
+        
+            <h3>2.3 Pre-Processing</h3>
+            <p><b>Indexing:</b> Start by building an index on the transcriptome using salmon. Salmon uses the
+                index to "quasi-map" RNA-seq reads.</p>
+
+            <pre><code>salmon index -t gene.features.fasta -i</code></pre>
+
+            <p><b>Quantification:</b> Now that we have the index of the transcriptome, we are ready to
+                quantify the samples. However, because salmon does not natively support interleaved FASTQ
+                files, we must use the provided runner.sh script with every sample being quantified. This
+                essentially de-interleaves each FASTQ file just before feeding it to the salmon quant command.</p>
+            <pre><code>
+# Path to the Salmon index
+index="decoys.txt.bak"
+
+# Loop through metadata file and process all FASTQ files
+for file in interleaved_fastq/*.fastq; do
+    sbatch scripts/runner.sh salmon quant --interleaved "$file" -p
+4 -i gene_features_index -l A -o "out/${file%.fastq}"
+done</code></pre>
+
+        <h3>2.4 Analysis Workflow</h3>
+        <p>With the index, quantification, GFF3 annotation, and metadata at hand, we are ready to
+            start analyzing with R. Here I will be highlighting the most relevant parts.</p>
+    
+
+        <ul>
+            <li><p><b>Loading Data: </b>Loading metadata and filtering samples for target groups (NitrateRoot, ControlRoot,
+                AmmoniumRoot).</p>
+            <pre><code>
+sample_info <- read_excel("rnaMetaBars.xlsx")
+target_groups <- c("NitrateRoot", "ControlRoot", "AmmoniumRoot")
+sample_info <- sample_info[sample_info$groupName %in% target_groups,]
+            </code></pre>
+            </li>
+        
+            <li><p>Loading quantification files paths filtered by target groups.</p>
+            <pre><code>
+quant_files <- list.files("out/interleaved_fastq",
+pattern="quant.sf", recursive = TRUE, full.names = TRUE)
+quant_files <- quant_files[quant_files %in% sample_info$fileUsed]
+            </code></pre>
+            </li>
+
+            <li><p><b>Transcript-to-Gene Mapping: </b>Generating a transcript-to-gene map using the GFF3 file.</p>
+            <pre><code>
+txdb <- txdbmaker::makeTxDbFromGFF("long.gff3")
+tx_map <- AnnotationDbi::select(txdb, keys = keys(txdb), columns =
+c("GENEID", "TXCHROM", "TXSTART", "TXEND"), keytype = "GENEID")
+tx_map$TXCHROM <- paste0(as.character(tx_map$TXCHROM), ":",
+tx_map$TXSTART - 1, "-", tx_map$TXEND)
+tx_map <- tx_map[, c(2, 1)] # TXCHROM vs GENEID
+            </code></pre>
+            </li>
+
+            <li><p><b>Count data into R and collapse the data to the gene level: </b> Custom_importer function was implemented to address mismatched Name formats.</p>
+            <pre><code>
+txi <- tximport(
+    files = quant_files,
+    type = "salmon",
+    tx2gene = tx_map,
+    importer = custom_importer)
+            </code></pre>
+            </li>
+            
+
+            <li><p><b>Differential Gene Expression Analysis: </b> Constructing a DESeq2 dataset for normalization and statistical testing. With the design
+                parameter we can specify what we are interested on (groupName, e.g. "NitrateRoot").</p>
+            <pre><code>
+dds <- DESeqDataSetFromTximport(
+    txi,
+    colData = sample_info,
+    design = ~ groupName)
+            </code></pre>
+            </li>
+            <li>
+                "We can use the vst function from DESeq2to compensate for the effect of different
+                library sizes and put the data on the log2 scale. The effect is to remove the dependence of
+                the variance on the mean, particularly the high variance of the logarithm of count data
+                when the mean is low. For more details see the DESeq2 vignette" <a href="https://sbc.shef.ac.uk/RNAseq-R/rna-seq-preprocessing.nb.html#challenge_17">Quote Source.</a>
+            </li>
+            <pre><code>vsd <- varianceStabilizingTransformation(dds, blind=TRUE)</code></pre>
+
+            <li><p><b>Visualizing Results: </b> Creating boxplots to examine raw and normalized distributions.</p>
+            <pre><code>
+boxplot(
+    log10(assay(dds)),
+    xlab="",
+    ylab="Log2 counts per million",
+    las=2,main="Normalised Distributions",
+    names = sample_info$groupName)
+    abline(
+    h=median(log10(assay(dds))),
+    col="blue")
+            </code></pre>
+            </li>
+            <li><p>Generating a heatmap of the top 10 most variable genes across treatments.</p></li>
+        
+            <pre><code>
+# get top variable genes
+row_vars <- apply(normalized_counts, 1, var)
+top_genes <- names(sort(row_vars, decreasing=TRUE))[1:10]
+top_counts <- normalized_counts[top_genes, ]
+
+# plot heatmap
+pheatmap(top_counts,
+    annotation_col = annotations,
+    labels_col = annotations$Sample,
+    show_rownames = TRUE,
+    cluster_cols = FALSE,
+    scale = "row",
+    main = "Top Genes Across Treatments")</code></pre>
+
+
+        </ul>
+
+        <li><p>Visualizing expression of the most mean variable genes using ggplot2.</p></li>
+        <pre><code>
+# Plot most variable genes
+row_mad <- apply(txi$counts, 1, mad)
+top_20_genes <- names(sort(row_mad, decreasing=TRUE))[1:12]
+
+ggplot(
+    filter(plot_data, gene %in% top_20_genes),
+    aes(x = Group, y = expression, fill = Group)
+) +
+geom_boxplot() +
+geom_point(
+    position = position_jitter(width = 0.2),
+) +
+theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+) +
+facet_wrap(
+    ~gene,
+    scales = "free_y",
+    ncol = 4
+) +
+labs(
+    title = "Expression of Most Variable Genes",
+    x = "Treatment Group",
+    y = "Normalized Expression",
+    fill = "Treatment Group"
+)</code></pre>
+
+
+        <h3 style="text-align: center;">3 - Results</h3>
+        <p>Using the aforementioned methods, we are able to visualize our results and draw
+            conclusions from our data. Looking at the first box plot we can see that all twelve FASTQ files
+            express around the same number of total genes. Overall, we can assume that difference in
+            treatment does not hugely impact total number of gene expressions.</p>
+
+        <img src="../src/public/final/img1.png"/>
+    
+        <p>Naturally, the next question is to find which genes do change the most with different
+            treatments. This is when we use a heatmap to find the most and least expressed genes. Although
+            there are a few overrepresented (red cells) and underrepresented (blue cells) genes, they do not
+            seem to be consistent across different samples within the same treatment group. Or perhaps the
+            rightmost sample SHC22-4-A4-R is an outlier that smooths the heatmap making it hard to tell.</p>
+       
+        <img src="../src/public/final/img2.png"/>
+        <p>To overcome the potential skewing issue, I lastly plotted the genes in individual box
+            plots. That way, the y axis adapts to the mean across treatment groups for the specific gene,
+            making it more robust against outliers. Now we can see the differential expressions better, and
+            notice genes such as g_163941 (top right), g_73014 (bottom right), g_70883 (bottom left),
+            g_158181 (top right), which are consistently expressed differently across samples of the same
+            group.</p>
+        <img src="../src/public/final/img3.png"/>
+        <p>Our results highlight genes that are consistently expressed differently across treatment
+            groups. This is a step towards discovering how salicornia can be optimally used as an ecological
+            shield to our salt marshes through different nitrogen sources.</p>
+
+        <h3 style="text-align: center;">4 - References</h3>
+        <ul>
+            <li>BLOOM, A.J., JACKSON, L.E. and SMART, D.R. (1993), Root growth as a function of
+                ammonium and nitrate in the root zone. Plant, Cell & Environment, 16: 199-206.
+                <a href="https://doi.org/10.1111/j.1365-3040.1993.tb00861.x">https://doi.org/10.1111/j.1365-3040.1993.tb00861.x</a></li>
+
+            <li>Johnson, D.S., Warren, R.S., Deegan, L.A. and Mozdzer, T.J. (2016), Saltmarsh plant responses
+                to eutrophication. Ecol Appl, 26: 2649-2661.  <a href="https://doi.org/10.1002/eap.1402">https://doi.org/10.1002/eap.1402</a></li>
+            
+            <li>Bloom, A.J., Meyerhoff, P.A., Taylor, A.R. et al. Root Development and Absorption of
+                Ammonium and Nitrate from the Rhizosphere. J Plant Growth Regul 21, 416-431
+                (2002).  <a href="https://doi.org/10.1007/s00344-003-0009-8">https://doi.org/10.1007/s00344-003-0009-8</a></li>
+            <li>Dunning, Mark. RNA-Seq Analysis in R, Feb. 2020,
+                 <a href="sbc.shef.ac.uk/RNAseq-R/rna-seq-preprocessing.nb.html">sbc.shef.ac.uk/RNAseq-R/rna-seq-preprocessing.nb.html</a></li>
+            
+            <li>Patro, Rob. "Getting Started - Salmon: Fast, Accurate and Bias-Aware Transcript Quantification
+                from RNA-Seq Data." Salmon: Fast, Accurate and Bias-Aware Transcript Quantification
+                from RNA-Seq Data, 2023,
+                <a href="https://combine-lab.github.io/salmon/getting_started/#obtaining-salmon">
+                combine-lab.github.io/salmon/getting_started/#obtaining-salmon</a></li>
+        
+            </ul>
+        </article>
+    </section>
+            
+
+    <div id="footer"></div>
+    </body>
+</html>

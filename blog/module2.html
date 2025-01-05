@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <link rel="stylesheet" href="../styles.css">
+        <link rel="icon" type="image/png" href="../src/public/man.png">
+        <title>Module 2 Project: RNA-Seq Data Analysis Workflow</title>
+        <script src="script.js" type="module"></script>
+    </head>
+    <body>
+        <section id="about"  class="container">
+        <article class="blog-post">
+            <h2>Module 2 Project: RNA-Seq Data Analysis Workflow</h2>
+            <h4>1) Cut Adapters</h4>
+            <p>To remove low-quality sequences and adapter contamination, we use a trimming tool. This step ensures that
+                only high-quality reads are retained, which is crucial for accurate alignment in downstream analysis. Here,
+                <code>cutadapt</code> is utilized for adapter trimming, which effectively removes unwanted sequences based on specific
+                adapter patterns.</p>
+            <pre><code>sbatch trim_reads2.sh INPUT_PATH OUTPUT_PATH</code></pre>
+        
+            <h4>2) Align Reads Command</h4>
+            <p>Once the data has been cleaned of adapters, the next step is to align the high-quality reads to a reference
+                genome. We use <code>hisat2</code> for this alignment process, as it is specifically optimized for RNA-Seq data. This
+                alignment step maps each read to its corresponding position in the genome, which is essential for quantifying
+                gene expression accurately.</p>
+            <pre><code>sbatch hisat2.sh INPUT_PATH REFERENCE_GENOME_PATH OUTPUT_PATH</code></pre>
+        
+            <h4>3) Merge and Sort BAM Files Command</h4>
+            <p>Following alignment, the generated BAM files need to be merged and sorted. This step consolidates all
+                aligned reads, organizing them by genomic position. Sorting is critical for efficient access. We use a merging
+                and sorting script to achieve this.</p>
+            <pre><code>sbatch sam_merge_sort_bam.sh INPUT_PATH OUTPUT_PATH GTF_FILE</code></pre>
+        
+            <h4>4) Quantify Gene Counts Command</h4>
+            <p>Next we quantify gene expression by counting reads that align to each gene. <code>featureCounts</code> is used here to
+                count the aligned reads for each annotated gene in the reference genome.</p>
+            <pre><code>sbatch featureCounts.sh INPUT_PATH OUTPUT_PATH GTF_FILE</code></pre>
+        
+            <h4>5) Plotting the Gene Expression</h4>
+            <p>The following R script uses <code>tidyverse</code> and <code>ggplot2</code> for visualizing gene expression:</p>
+            <pre><code>
+        
+library(tidyverse)
+library(openxlsx)
+library(ggplot2)
+
+# Load the data
+data <- read.xlsx("/home/flyingnimbus2/Desktop/Module_2/out/genes.xlsx")
+data = data[, -1] # remove geneID
+head(data)
+
+# Pivot table
+data <- pivot_longer(data, names(data))
+colnames(data) <- c("Treat", "Expression") # name columns
+
+# Combine replicates
+data <- mutate(data, Treat = gsub("\\d", "", Treat))
+
+# Sort
+data <- arrange(data, Treat)
+head(data)
+
+# Create the box plot
+ggplot(data, aes(x = Treat, y = Expression, fill = Treat)) +
+geom_boxplot() +
+labs(
+    title = "Gene Expression Box Plot",
+    x = "Condition",
+    y = "Expression"
+) +
+scale_y_log10()
+            </code></pre>
+            </div>
+            <p>The resulting plot displays gene expression levels categorized by conditions (C, T, V).</p>
+            
+            <img src="../src/public/module2/geneplot.png" alt="Gene Expression Box Plot" />
+        </article>
+        </section>
+    <div id="footer"></div>
+    </body>
+</html>
